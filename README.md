@@ -74,22 +74,6 @@ Each row in your CSV represents one class. The extension supports three class ty
 
 > Column names are **case-insensitive** and can be partial matches — e.g., `Topic` matches `topic name`.
 
-### Example CSV (Lecture)
-
-```csv
-class type,topic name,lecture activity,academy module type,academy module name,live lecture duration,class tag,assignment duration
-Lecture,Linear Regression,Regular,Core,Machine Learning,90,Default,30
-Lecture,Logistic Regression,Regular,Core,Machine Learning,90,Default,45
-```
-
-### Example CSV (Contest)
-
-```csv
-class type,topic name,contest activity,contest type,contest id,contest duration
-Contest,Week 3 Contest,Regular,Single,12345,120
-```
-
----
 
 ## 🚀 How to Use
 
@@ -167,18 +151,6 @@ scaler-autofill/
 
 ---
 
-## ⚠️ Permissions Used
-
-| Permission | Reason |
-|---|---|
-| `activeTab` | Read the current tab to check if it's the Scaler create-class page |
-| `scripting` | Inject the content script into the Scaler page |
-| `storage` | Save CSV data, field mappings, and run history locally |
-| `tabs` | Open the create-class page and send messages between popup and content script |
-| `downloads` | Auto-save run logs as `.txt` files |
-| `host_permissions: scaler.com` | Required to run the content script on Scaler pages |
-
----
 
 ## 📄 License
 
