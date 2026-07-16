@@ -1,0 +1,13 @@
+# Ignore CSV data files (may contain sensitive class/student data)
+*.csv
+
+# Ignore test/scratch folders
+test_*/
+images for checking/
+
+# Ignore OS files
+.DS_Store
+Thumbs.db
+
+# Ignore VS Code settings
+.vscode/

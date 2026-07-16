@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Scaler Autofill</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      width: 400px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0f1117;
+      color: #e4e4e7;
+      font-size: 13px;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      padding: 16px 20px;
+      border-bottom: 1px solid #2a2a3e;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .header .logo {
+      width: 28px;
+      height: 28px;
+      background: #00d4ff;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+
+    .header h1 { font-size: 15px; font-weight: 700; color: #fff; }
+    .header p { font-size: 11px; color: #888; margin-top: 1px; }
+
+    .section {
+      padding: 14px 20px;
+      border-bottom: 1px solid #1e1e2e;
+    }
+
+    .section-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #666;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .section-title .badge {
+      background: #00d4ff22;
+      color: #00d4ff;
+      padding: 1px 6px;
+      border-radius: 10px;
+      font-size: 10px;
+    }
+
+    /* CSV Upload */
+    .upload-zone {
+      border: 2px dashed #2a2a3e;
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: #13131f;
+    }
+
+    .upload-zone:hover, .upload-zone.dragover {
+      border-color: #00d4ff;
+      background: #00d4ff08;
+    }
+
+    .upload-zone input { display: none; }
+    .upload-zone .icon { font-size: 22px; margin-bottom: 4px; }
+    .upload-zone p { color: #888; font-size: 12px; }
+    .upload-zone .filename { color: #00d4ff; font-weight: 600; font-size: 12px; margin-top: 4px; }
+
+    .csv-preview {
+      margin-top: 10px;
+      background: #13131f;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .csv-stats {
+      display: flex;
+      gap: 12px;
+      padding: 8px 12px;
+      background: #1a1a2e;
+    }
+
+    .csv-stat { text-align: center; }
+    .csv-stat .val { font-size: 18px; font-weight: 700; color: #00d4ff; }
+    .csv-stat .lbl { font-size: 10px; color: #666; }
+
+    /* Field Mapping */
+    .columns-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .column-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #13131f;
+      border-radius: 6px;
+      padding: 7px 10px;
+      border: 1px solid #1e1e2e;
+    }
+
+    .column-name {
+      flex: 1;
+      font-size: 12px;
+      font-weight: 600;
+      color: #e4e4e7;
+    }
+
+    .mapping-status {
+      font-size: 11px;
+      color: #555;
+    }
+
+    .mapping-status.mapped { color: #00ff88; }
+
+    .map-btn {
+      background: #1e1e3e;
+      color: #00d4ff;
+      border: 1px solid #2a2a5e;
+      padding: 3px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 600;
+      transition: all 0.15s;
+    }
+
+    .map-btn:hover { background: #00d4ff22; }
+    .map-btn.mapped { border-color: #00ff8855; color: #00ff88; background: #00ff8808; }
+
+    /* Controls */
+    .btn {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 700;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #00d4ff, #0099cc);
+      color: #000;
+    }
+
+    .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+    .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+    .btn-danger { background: #ff4444; color: #fff; }
+    .btn-danger:hover { background: #ff2222; }
+
+    .btn-secondary {
+      background: #1e1e3e;
+      color: #aaa;
+      border: 1px solid #2a2a4e;
+    }
+
+    .btn-secondary:hover { color: #fff; border-color: #444; }
+
+    /* Progress */
+    .progress-bar-wrap {
+      background: #1e1e2e;
+      border-radius: 6px;
+      height: 6px;
+      overflow: hidden;
+      margin: 8px 0;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #00d4ff, #00ff88);
+      border-radius: 6px;
+      transition: width 0.5s ease;
+    }
+
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #666;
+    }
+
+    /* Log */
+    .log-box {
+      background: #0a0a12;
+      border-radius: 6px;
+      padding: 8px 10px;
+      height: 120px;
+      overflow-y: auto;
+      font-family: 'SF Mono', 'Consolas', monospace;
+      font-size: 11px;
+      line-height: 1.6;
+    }
+
+    .log-line { margin: 1px 0; }
+    .log-line.success { color: #00ff88; }
+    .log-line.error { color: #ff6b6b; }
+    .log-line.warn { color: #ffa500; }
+    .log-line.info { color: #888; }
+
+    .row-controls {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .row-controls .btn { font-size: 12px; padding: 7px; }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      background: #0f1117;
+      border-bottom: 1px solid #1e1e2e;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 10px;
+      text-align: center;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      color: #555;
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+    }
+
+    .tab.active { color: #00d4ff; border-bottom-color: #00d4ff; }
+    .tab:hover:not(.active) { color: #888; }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    .empty-state {
+      text-align: center;
+      padding: 20px;
+      color: #444;
+      font-size: 12px;
+    }
+
+    .empty-state .icon { font-size: 28px; margin-bottom: 6px; }
+
+    /* Tooltip */
+    .tooltip {
+      font-size: 11px;
+      color: #555;
+      background: #13131f;
+      border: 1px solid #1e1e2e;
+      border-radius: 5px;
+      padding: 6px 10px;
+      margin-top: 6px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">⚡</div>
+  <div>
+    <h1>Scaler Autofill</h1>
+    <p>Bulk class creation from CSV</p>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" data-tab="setup">📁 Setup</div>
+  <div class="tab" data-tab="map">🗺️ Map Fields</div>
+  <div class="tab" data-tab="run">▶ Run</div>
+  <div class="tab" data-tab="history">⏳ History</div>
+</div>
+
+<!-- SETUP TAB -->
+<div class="tab-panel active" id="tab-setup">
+  <div class="section">
+    <div class="section-title">1. Upload CSV</div>
+    <div class="upload-zone" id="uploadZone">
+      <input type="file" id="csvInput" accept=".csv">
+      <div class="icon">📄</div>
+      <p>Click or drag & drop your CSV file</p>
+      <div class="filename" id="csvFilename"></div>
+    </div>
+    <div class="csv-preview" id="csvPreview" style="display:none">
+      <div class="csv-stats">
+        <div class="csv-stat">
+          <div class="val" id="statRows">0</div>
+          <div class="lbl">Rows</div>
+        </div>
+        <div class="csv-stat">
+          <div class="val" id="statCols">0</div>
+          <div class="lbl">Columns</div>
+        </div>
+        <div class="csv-stat">
+          <div class="val" id="statMapped">0</div>
+          <div class="lbl">Mapped</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">2. Go to create class page</div>
+    <button class="btn btn-secondary" id="openPageBtn">
+      🌐 Open Create Class Page
+    </button>
+    <div class="tooltip" style="margin-top:8px">
+      Make sure you're logged into Scaler before mapping fields.
+    </div>
+  </div>
+
+  <div class="section">
+    <button class="btn btn-primary" id="goToMapBtn" disabled>
+      Next: Map Fields →
+    </button>
+  </div>
+</div>
+
+<!-- MAP FIELDS TAB -->
+<div class="tab-panel" id="tab-map">
+  <div class="section">
+    <div class="section-title">
+      Map CSV columns to form fields
+      <span class="badge" id="mappedCount">0/0</span>
+    </div>
+    <div class="tooltip" style="margin-bottom:10px">
+      Click "Map" next to a column, then click the matching field on the Scaler form.
+    </div>
+    <div class="columns-list" id="columnsList">
+      <div class="empty-state">
+        <div class="icon">📋</div>
+        Upload a CSV first to see columns
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-secondary" id="clearMapBtn" style="flex:1">🗑 Clear Map</button>
+      <button class="btn btn-primary" id="goToRunBtn" style="flex:2" disabled>
+        Next: Run →
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- RUN TAB -->
+<div class="tab-panel" id="tab-run">
+  <div class="section">
+    <div class="section-title">Queue</div>
+    <div class="progress-label">
+      <span id="progressText">0 of 0 classes</span>
+      <span id="progressPct">0%</span>
+    </div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
+    </div>
+    <div class="row-controls">
+      <input type="number" id="startFrom" min="1" value="1" placeholder="Start from row"
+        style="flex:1;background:#13131f;border:1px solid #2a2a3e;color:#e4e4e7;padding:7px;border-radius:6px;font-size:12px">
+      <button class="btn btn-primary" id="startBtn" style="flex:2" disabled>
+        ▶ Start Autofill
+      </button>
+    </div>
+    <button class="btn btn-danger" id="stopBtn" style="display:none;margin-top:6px">
+      ⏹ Stop
+    </button>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Log</div>
+    <div class="log-box" id="logBox">
+      <div class="log-line info">Ready. Upload a CSV and map fields to begin.</div>
+    </div>
+  </div>
+</div>
+
+<!-- HISTORY TAB -->
+<div class="tab-panel" id="tab-history">
+  <div class="section">
+    <div class="section-title">Past Runs</div>
+    <div class="columns-list" id="historyList">
+      <div class="empty-state">
+        <div class="icon">⏳</div>
+        No past runs recorded yet.
+      </div>
+    </div>
+  </div>
+  <div class="section">
+    <button class="btn btn-secondary" id="clearHistoryBtn">🗑 Clear Run History</button>
+  </div>
+</div>
+
+<script src="popup.js"></script>
+</body>
+</html>
